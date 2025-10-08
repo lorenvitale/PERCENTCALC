@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>ProvvCalc Side Panel</title>
+  <style>
+    html,body,iframe { height:100%; width:100%; margin:0; padding:0; border:0; }
+    body { background:#0b1220; }
+  </style>
+</head>
+<body>
+  <iframe id="app" src="https://lorenvitale.github.io/PERCENTCALC/" allow="clipboard-read; clipboard-write"></iframe>
+  <script>
+    const frame = document.getElementById("app");
+
+    // riceve dal background e inoltra all'app in iframe (GitHub Pages)
+    chrome.runtime.onMessage.addListener((msg) => {
+      if (msg?.type === "IMPO_BROADCAST" && frame?.contentWindow) {
+        frame.contentWindow.postMessage({ type: "IMPO_BROADCAST", imponibile: msg.imponibile }, "*");
+      }
+    });
+
+    // opzionale: al connect invia eventuale valore memorizzato
+    const port = chrome.runtime.connect({ name: "provvcalc-panel" });
+  </script>
+</body>
+</html>
