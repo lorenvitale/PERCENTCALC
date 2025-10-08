@@ -4,12 +4,10 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
   if (msg?.type === "IMPO_UPDATE") {
     lastImponibile = msg.imponibile;
     chrome.runtime.sendMessage({ type: "IMPO_BROADCAST", imponibile: lastImponibile });
-    sendResponse({ ok: true });
+    sendResponse?.({ ok: true });
   }
-});
-
-chrome.runtime.onConnect.addListener((port) => {
-  if (port.name === "provvcalc-panel" && lastImponibile != null) {
-    port.postMessage({ type: "IMPO_BROADCAST", imponibile: lastImponibile });
+  if (msg?.type === "IMPO_DEBUG") {
+    // utile se vuoi mostrare info nel side panel
+    chrome.runtime.sendMessage({ type: "IMPO_DEBUG", ...msg });
   }
 });
