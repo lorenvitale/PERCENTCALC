@@ -458,7 +458,7 @@ function App() {
       )}
 
       <footer className="max-w-6xl mx-auto px-4 py-10 text-center text-xs text-slate-500">
-        <div className=\"flex items-center justify-center gap-2 mb-2\"><Shield size=\{14\}/> Made for insurance workflows • Tema blu</div>
+        <div className="flex items-center justify-center gap-2 mb-2"><Shield size={14}/> Made for insurance workflows • Tema blu</div>
         <div>Tips: carica uno screenshot del gestionale, premi imponibile → OCR estrae i numeri → tocca per inserirli → usa i tasti % per le provvigioni. Da tastiera: numeri 0–9, "," o "." per il decimale, + − × ÷, Invio (=) per uguale, Backspace per cancella, Esc per AC, F1–F6 per applicare i 6 % personalizzati, "t" per tema.</div>
       </footer>
     </div>
