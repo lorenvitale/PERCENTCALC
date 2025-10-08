@@ -1,7 +1,6 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
-
 export default defineConfig({
   plugins: [react()],
-  base: "/provvcalc/", // necessario per GitHub Pages (sotto-cartella)
+  base: "/PERCENTCALC/",   // <-- deve essere il NOME ESATTO del repo
 });
