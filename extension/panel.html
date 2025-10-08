@@ -7,22 +7,43 @@
   <style>
     html,body,iframe { height:100%; width:100%; margin:0; padding:0; border:0; }
     body { background:#0b1220; }
+    #bar { position: absolute; inset: 8px 8px auto 8px; height: 36px; display:flex; gap:8px; align-items:center; z-index: 10; }
+    #bar button { padding:6px 10px; border-radius:8px; border:1px solid rgba(255,255,255,.2); background:rgba(255,255,255,.08); color:#fff; cursor:pointer; }
+    #dbg { font:12px system-ui; color:#cfe3ff; opacity:.9 }
+    #wrap { position:relative; height:100%; }
   </style>
 </head>
 <body>
-  <iframe id="app" src="https://lorenvitale.github.io/PERCENTCALC/" allow="clipboard-read; clipboard-write"></iframe>
+  <div id="wrap">
+    <div id="bar">
+      <button id="rescan">🔄 Rescan</button>
+      <div id="dbg">Pronto</div>
+    </div>
+    <iframe id="app" src="https://lorenvitale.github.io/PERCENTCALC/" allow="clipboard-read; clipboard-write"></iframe>
+  </div>
+
   <script>
     const frame = document.getElementById("app");
+    const dbg = document.getElementById("dbg");
 
-    // riceve dal background e inoltra all'app in iframe (GitHub Pages)
+    // inoltra all'app i valori ricevuti dal background
     chrome.runtime.onMessage.addListener((msg) => {
       if (msg?.type === "IMPO_BROADCAST" && frame?.contentWindow) {
         frame.contentWindow.postMessage({ type: "IMPO_BROADCAST", imponibile: msg.imponibile }, "*");
+        dbg.textContent = `Imponibile: ${msg.imponibile}`;
+      }
+      if (msg?.type === "IMPO_DEBUG") {
+        dbg.textContent = `Scan: ${msg.imponibile ?? "—"} | nodi: ${msg.nodes ?? "?"}`;
       }
     });
 
-    // opzionale: al connect invia eventuale valore memorizzato
-    const port = chrome.runtime.connect({ name: "provvcalc-panel" });
+    // bottone per forzare scansione sulla TAB attiva
+    document.getElementById("rescan").addEventListener("click", async () => {
+      const [tab] = await chrome.tabs.query({ active: true, lastFocusedWindow: true });
+      if (tab?.id) {
+        chrome.tabs.sendMessage(tab.id, { type: "RESCAN_IMPO" });
+      }
+    });
   </script>
 </body>
 </html>
