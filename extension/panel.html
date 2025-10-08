@@ -21,29 +21,6 @@
     </div>
     <iframe id="app" src="https://lorenvitale.github.io/PERCENTCALC/" allow="clipboard-read; clipboard-write"></iframe>
   </div>
-
-  <script>
-    const frame = document.getElementById("app");
-    const dbg = document.getElementById("dbg");
-
-    // inoltra all'app i valori ricevuti dal background
-    chrome.runtime.onMessage.addListener((msg) => {
-      if (msg?.type === "IMPO_BROADCAST" && frame?.contentWindow) {
-        frame.contentWindow.postMessage({ type: "IMPO_BROADCAST", imponibile: msg.imponibile }, "*");
-        dbg.textContent = `Imponibile: ${msg.imponibile}`;
-      }
-      if (msg?.type === "IMPO_DEBUG") {
-        dbg.textContent = `Scan: ${msg.imponibile ?? "—"} | nodi: ${msg.nodes ?? "?"}`;
-      }
-    });
-
-    // bottone per forzare scansione sulla TAB attiva
-    document.getElementById("rescan").addEventListener("click", async () => {
-      const [tab] = await chrome.tabs.query({ active: true, lastFocusedWindow: true });
-      if (tab?.id) {
-        chrome.tabs.sendMessage(tab.id, { type: "RESCAN_IMPO" });
-      }
-    });
-  </script>
+  <script src="panel.js"></script>
 </body>
 </html>
