@@ -1,4 +1,4 @@
-name: Deploy ProvvCalc to GitHub Pages
+name: Deploy PERCENTCALC to GitHub Pages
 
 on:
   push:
@@ -25,16 +25,15 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: 'npm'
+          # ⛔ niente cache: non hai lock file e causerebbe errore
 
-      # 👇 sostituisce npm ci
       - name: Install dependencies
         run: npm install
 
       - name: Build with Vite
         run: npm run build
 
-      - name: Upload build artifact
+      - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
           path: dist
@@ -46,5 +45,4 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Deploy to GitHub Pages
-        id: deployment
         uses: actions/deploy-pages@v4
