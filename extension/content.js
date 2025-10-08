@@ -11,14 +11,33 @@ function parseIt(numLike) {
   return Number.isFinite(n) ? n : null;
 }
 
-function pickImponibileFromNode(node) {
-  const text = (node?.innerText || node?.textContent || "").trim();
-  if (!text) return null;
-  if (/(imponibile|premio imponibile|premio|premi)/i.test(text)) {
-    const matches = text.match(NUM_RE) || [];
-    for (let i = matches.length - 1; i >= 0; i--) {
-      const v = parseIt(matches[i]);
-      if (v !== null && v > 0) return v;
+const KEYWORDS = ["premio imponibile", "imponibile", "premio", "importi"];
+
+function findNearestNumber(node) {
+  const t = (node.innerText || node.textContent || "").trim();
+  const m = t.match(NUM_RE);
+  if (m && m.length) {
+    for (let i = m.length - 1; i >= 0; i--) {
+      const v = parseIt(m[i]);
+      if (v && v > 0) return v;
+    }
+  }
+  const p = node.parentElement;
+  if (p) {
+    for (const sib of p.children) {
+      if (sib === node) continue;
+      const mm = (sib.innerText || sib.textContent || "").match(NUM_RE) || [];
+      for (let i = mm.length - 1; i >= 0; i--) {
+        const v = parseIt(mm[i]);
+        if (v && v > 0) return v;
+      }
+    }
+  }
+  for (const child of node.querySelectorAll("*")) {
+    const mm = (child.innerText || child.textContent || "").match(NUM_RE) || [];
+    for (let i = mm.length - 1; i >= 0; i--) {
+      const v = parseIt(mm[i]);
+      if (v && v > 0) return v;
     }
   }
   return null;
@@ -29,15 +48,18 @@ function scanAll() {
   let examined = 0;
 
   try {
-    // 1) scorciatoie mirate: cerca elementi con testo vicino a "Premio imponibile"
     const nodes = Array.from(document.querySelectorAll("label, span, div, td, th"));
     examined = nodes.length;
-    for (const el of nodes) {
-      const v = pickImponibileFromNode(el);
+    const keyNodes = nodes.filter(el => {
+      const txt = (el.innerText || el.textContent || "").toLowerCase();
+      return KEYWORDS.some(k => txt.includes(k));
+    });
+
+    for (const el of keyNodes) {
+      const v = findNearestNumber(el);
       if (v) { best = v; break; }
     }
 
-    // 2) fallback: tutto il testo pagina
     if (!best) {
       const allText = document.body?.innerText || "";
       const matches = allText.match(NUM_RE) || [];
@@ -59,20 +81,17 @@ function scanAll() {
   }
 }
 
-// osserva cambi nel DOM (SPA / ricarichi parziali)
 const observer = new MutationObserver(() => {
   clearTimeout(window.__provvcalc_t);
   window.__provvcalc_t = setTimeout(scanAll, 300);
 });
 observer.observe(document.documentElement, { childList: true, subtree: true, characterData: true });
 
-// ascolta richieste di rescan manuale
 chrome.runtime.onMessage.addListener((msg) => {
   if (msg?.type === "RESCAN_IMPO") {
-    console.log(TAG, "RESCAN_IMPO ricevuto");
+    console.log(TAG, "RESCAN_IMPO");
     scanAll();
   }
 });
 
-// prima scansione
 scanAll();
