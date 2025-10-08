@@ -25,10 +25,19 @@ const parseNumber = (s) => {
 };
 
 const defaultPercents = [5, 6, 10, 16, 20, 25];
+const defaultLabels = [
+  "Autocarri e macchine agricole",
+  "Auto e moto",
+  "Non motor poliennali",
+  "Non motor",
+  "Slot 5",
+  "Slot 6",
+];
 
 const defaultPrefs = {
   theme: "light",
   percents: defaultPercents,
+  labels: defaultLabels,
 };
 
 const loadPrefs = () => {
@@ -237,10 +246,21 @@ function App() {
   };
 
   const updatePercent = (idx, newVal) => {
-    const v = Math.max(0, Math.min(1000, Number(newVal)));
-    const next = [...prefs.percents];
-    next[idx] = v;
-    const np = { ...prefs, percents: next };
+  const v = Math.max(0, Math.min(1000, Number(newVal)));
+  const next = [...prefs.percents];
+  next[idx] = v;
+  const np = { ...prefs, percents: next };
+  setPrefs(np);
+  savePrefs(np);
+};
+
+const updateLabel = (idx, newVal) => {
+  const next = [...prefs.labels];
+  next[idx] = newVal;
+  const np = { ...prefs, labels: next };
+  setPrefs(np);
+  savePrefs(np);
+};
     setPrefs(np);
     savePrefs(np);
   };
@@ -252,22 +272,40 @@ function App() {
   };
 
   const onOcrFile = async (file) => {
-    if (!file) return;
-    setOcrBusy(true);
-    try {
-      const { data } = await Tesseract.recognize(file, "ita+eng", {
-        logger: () => {},
-      });
-      const txt = data.text || "";
-      const nums = numbersFromText(txt);
-      setImportedNumbers(nums);
-    } catch (e) {
-      console.error(e);
-      alert("OCR non riuscito. Riprova con un'immagine più nitida.");
-    } finally {
-      setOcrBusy(false);
-    }
-  };
+  if (!file) return;
+  setOcrBusy(true);
+  try {
+    const { data } = await Tesseract.recognize(file, "ita+eng", {
+      logger: () => {},
+    });
+    const txt = data.text || "";
+    const nums = numbersFromText(txt);
+    setImportedNumbers(nums);
+  } catch (e) {
+    console.error(e);
+    alert("OCR non riuscito. Riprova con un'immagine più nitida.");
+  } finally {
+    setOcrBusy(false);
+  }
+};
+
+const exportCSV = () => {
+  const rows = [
+    ["timestamp", "expression", "result"],
+    ...history.map((h) => [h.ts, h.expression, String(h.result)])
+  ];
+  const csv = rows.map(r => r.map((c) => `"${String(c).replaceAll('"','""')}"`).join(",")).join("
+");
+  const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `provvcalc_storico_${new Date().toISOString().slice(0,10)}.csv`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+};
 
   const pasteImage = async () => {
     try {
@@ -356,8 +394,14 @@ function App() {
               </div>
               <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
                 {prefs.percents.map((p, i) => (
-                  <button key={i} onClick={() => applyPercent(p)} className="px-3 py-2 rounded-xl border border-blue-200 dark:border-blue-800 bg-blue-50 text-blue-800 dark:bg-blue-900/40 dark:text-blue-200 hover:bg-blue-100 dark:hover:bg-blue-800/60 font-medium">
-                    {p}%
+                  <button
+                    key={i}
+                    onClick={() => applyPercent(p)}
+                    className="px-3 py-2 rounded-xl border border-blue-200 dark:border-blue-800 bg-blue-50 text-blue-800 dark:bg-blue-900/40 dark:text-blue-200 hover:bg-blue-100 dark:hover:bg-blue-800/60 font-medium text-left"
+                    title={`${prefs.labels?.[i] ?? ''} (${p}%)`}
+                  >
+                    <div className="text-[10px] leading-tight opacity-80 truncate">{prefs.labels?.[i] ?? ''}</div>
+                    <div className="text-base font-semibold">{p}%</div>
                   </button>
                 ))}
               </div>
@@ -398,7 +442,10 @@ function App() {
           <div className="rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 overflow-hidden">
             <div className="p-4 flex items-center justify-between">
               <div className="flex items-center gap-2"><History size={18}/> <span className="font-medium">Storico calcoli</span></div>
-              <button onClick={() => setHistory([])} className="text-xs px-2 py-1 rounded-md border border-slate-300 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800">Svuota</button>
+              <div className="flex items-center gap-2">
+                <button onClick={exportCSV} className="text-xs px-2 py-1 rounded-md border border-slate-300 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800">Export CSV</button>
+                <button onClick={() => setHistory([])} className="text-xs px-2 py-1 rounded-md border border-slate-300 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800">Svuota</button>
+              </div>
             </div>
             <div className="divide-y divide-slate-200 dark:divide-slate-800 max-h-[420px] overflow-auto">
               {history.length === 0 ? (
@@ -432,16 +479,29 @@ function App() {
             </div>
             <div className="p-4 space-y-4">
               <div>
-                <div className="text-sm font-medium mb-2">Tasti fissi %</div>
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                <div className="text-sm font-medium mb-2">Tasti fissi % con etichette</div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   {prefs.percents.map((p, i) => (
                     <div key={i} className="flex items-center gap-2">
-                      <input type="number" step="0.01" min="0" max="1000" value={p} onChange={(e) => updatePercent(i, e.target.value)} className="w-24 px-2 py-1 rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900"/>
+                      <input
+                        type="text"
+                        value={prefs.labels?.[i] ?? ''}
+                        onChange={(e) => updateLabel(i, e.target.value)}
+                        placeholder={`Etichetta ${i+1}`}
+                        className="flex-1 px-2 py-1 rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900"
+                      />
+                      <input
+                        type="number"
+                        step="0.01" min="0" max="1000"
+                        value={p}
+                        onChange={(e) => updatePercent(i, e.target.value)}
+                        className="w-24 px-2 py-1 rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900"
+                      />
                       <span className="text-sm">%</span>
                     </div>
                   ))}
                 </div>
-              </div>
+
               <div className="flex items-center justify-between">
                 <div className="text-sm">Tema</div>
                 <div className="flex items-center gap-2">
