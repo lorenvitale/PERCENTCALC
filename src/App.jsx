@@ -103,6 +103,62 @@ function App() {
     document.documentElement.classList.toggle("dark", prefs.theme === "dark");
   }, [prefs.theme]);
 
+  // Keyboard input: digits, ops, enter, backspace, escape, percent presets (F1–F6)
+  useEffect(() => {
+    const onKeyDown = (e) => {
+      const k = e.key;
+      // Allow typing numbers (including numpad)
+      if (/^[0-9]$/.test(k)) {
+        e.preventDefault();
+        inputDigit(k);
+        return;
+      }
+      if (k === "," || k === ".") {
+        e.preventDefault();
+        addDot();
+        return;
+      }
+      if (k === "+" || k === "-" || k === "*" || k === "/") {
+        e.preventDefault();
+        setOp(k);
+        return;
+      }
+      if (k === "Enter" || k === "=") {
+        e.preventDefault();
+        equals();
+        return;
+      }
+      if (k === "Backspace") {
+        e.preventDefault();
+        backspace();
+        return;
+      }
+      if (k === "Escape") {
+        e.preventDefault();
+        clearAll();
+        return;
+      }
+      // Quick percent: F1–F6 apply custom % buttons 1–6
+      if (/^F[1-6]$/.test(k)) {
+        const idx = Number(k.slice(1)) - 1;
+        const p = prefs.percents[idx];
+        if (typeof p === "number") {
+          e.preventDefault();
+          applyPercent(p);
+        }
+        return;
+      }
+      // Toggle theme with 't'
+      if (k.toLowerCase() === "t") {
+        e.preventDefault();
+        toggleTheme();
+        return;
+      }
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [prefs.percents]);
+
   const pushHistory = (expression, result) => {
     const item = {
       id: crypto.randomUUID(),
@@ -402,8 +458,8 @@ function App() {
       )}
 
       <footer className="max-w-6xl mx-auto px-4 py-10 text-center text-xs text-slate-500">
-        <div className="flex items-center justify-center gap-2 mb-2"><Shield size={14}/> Made for insurance workflows • Tema blu</div>
-        <div>Tips: carica uno screenshot del gestionale, premi imponibile -> OCR estrae i numeri -> tocca per inserirli -> usa i tasti % per le provvigioni.</div>
+        <div className=\"flex items-center justify-center gap-2 mb-2\"><Shield size=\{14\}/> Made for insurance workflows • Tema blu</div>
+        <div>Tips: carica uno screenshot del gestionale, premi imponibile → OCR estrae i numeri → tocca per inserirli → usa i tasti % per le provvigioni. Da tastiera: numeri 0–9, "," o "." per il decimale, + − × ÷, Invio (=) per uguale, Backspace per cancella, Esc per AC, F1–F6 per applicare i 6 % personalizzati, "t" per tema.</div>
       </footer>
     </div>
   );
