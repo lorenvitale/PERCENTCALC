@@ -390,141 +390,167 @@ function App() {
         </div>
       </header>
 
-      <main className="max-w-6xl mx-auto px-4 py-6 grid grid-cols-1 lg:grid-cols-5 gap-6">
-        {/* Calculator */}
-        <motion.section layout className="lg:col-span-3">
-          <div className="rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 overflow-hidden">
-            <div className="p-4 bg-gradient-to-br from-blue-50 to-blue-100 dark:from-slate-900 dark:to-slate-800">
-              <div className="text-xs uppercase tracking-wide text-blue-700 dark:text-blue-300 font-semibold">
-                Calcolatrice
-              </div>
-              <div className="mt-2 text-3xl font-semibold text-blue-900 dark:text-blue-200 text-right tabular-nums">
-                {fmt(parseNumber(display))}
-              </div>
-              {pendingOp && (
-                <div className="text-right text-xs text-slate-500 mt-1">
-                  Operazione in corso: {fmt(pendingOp.value)} {pendingOp.op}
-                </div>
-              )}
-            </div>
-
-            </div>
+    <main className="max-w-6xl mx-auto px-4 py-6 grid grid-cols-1 lg:grid-cols-5 gap-6">
+  {/* Calcolatrice: DISPLAY + TASTI % (niente tastiera qui) */}
+  <motion.section layout className="lg:col-span-3">
+    <div className="rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 overflow-hidden">
+      {/* Display */}
+      <div className="p-4 bg-gradient-to-br from-blue-50 to-blue-100 dark:from-slate-900 dark:to-slate-800">
+        <div className="text-xs uppercase tracking-wide text-blue-700 dark:text-blue-300 font-semibold">
+          Calcolatrice
+        </div>
+        <div className="mt-2 text-3xl font-semibold text-blue-900 dark:text-blue-200 text-right tabular-nums">
+          {fmt(parseNumber(display))}
+        </div>
+        {pendingOp && (
+          <div className="text-right text-xs text-slate-500 mt-1">
+            Operazione in corso: {fmt(pendingOp.value)} {pendingOp.op}
           </div>
-        </motion.section>
+        )}
+      </div>
 
-        {/* Sidebar: OCR + History */}
-        <motion.aside layout className="lg:col-span-2 space-y-6">
-          {/* OCR Card */}
-          <div className="rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 overflow-hidden">
-            <div className="p-4 flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <ImageIcon size={18} /> <span className="font-medium">Importa dati da foto/screen (OCR)</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={() => fileInputRef.current?.click()}
-                  className="text-xs px-2 py-1 rounded-md border border-slate-300 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800"
-                >
-                  Carica immagine
-                </button>
-                <button
-                  onClick={pasteImage}
-                  className="text-xs px-2 py-1 rounded-md border border-slate-300 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800"
-                >
-                  Incolla
-                </button>
-              </div>
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept="image/*"
-                className="hidden"
-                onChange={(e) => onOcrFile(e.target.files?.[0])}
-              />
-            </div>
-            <div className="p-4 border-t border-slate-200 dark:border-slate-800">
-              {ocrBusy ? (
-                <div className="text-sm text-slate-500">Analisi in corso…</div>
-              ) : importedNumbers.length === 0 ? (
-                <div className="text-sm text-slate-500">
-                  Qui compariranno i numeri trovati (es. premi imponibili).
-                </div>
-              ) : (
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                  {importedNumbers.map((n, idx) => (
-                    <button
-                      key={idx}
-                      onClick={() => insertImported(n)}
-                      className="px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800"
-                    >
-                      {fmt(n)}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
+      {/* ⚠️ NIENTE tastiera qui. Solo i tasti % */}
+      <div className="p-4 border-t border-slate-200 dark:border-slate-800 bg-slate-50/60 dark:bg-slate-900/60">
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300">
+            <Percent size={16} /> Tasti % personalizzabili
           </div>
+          <button
+            onClick={() => setShowSettings(true)}
+            className="text-xs px-2 py-1 rounded-md border border-slate-300 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800"
+          >
+            <Settings size={14} /> Modifica
+          </button>
+        </div>
+        <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
+          {prefs.percents.map((p, i) => (
+            <button
+              key={i}
+              onClick={() => applyPercent(p, prefs.labels?.[i])}
+              className="px-3 py-2 rounded-xl border border-blue-200 dark:border-blue-800 bg-blue-50 text-blue-800 dark:bg-blue-900/40 dark:text-blue-200 hover:bg-blue-100 dark:hover:bg-blue-800/60 font-medium text-left"
+              title={`${prefs.labels?.[i] ?? ""} (${p}%)`}
+            >
+              <div className="text-[10px] leading-tight opacity-80 truncate">
+                {prefs.labels?.[i] ?? ""}
+              </div>
+              <div className="text-base font-semibold">{p}%</div>
+            </button>
+          ))}
+        </div>
+      </div>
+    </div>
+  </motion.section>
 
-          {/* History Card */}
-          <div className="rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 overflow-hidden">
-            <div className="p-4 flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <History size={18} /> <span className="font-medium">Storico calcoli</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={exportCSV}
-                  className="text-xs px-2 py-1 rounded-md border border-slate-300 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800"
-                >
-                  Export CSV
-                </button>
-                <button
-                  onClick={() => setHistory([])}
-                  className="text-xs px-2 py-1 rounded-md border border-slate-300 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800"
-                >
-                  Svuota
-                </button>
-              </div>
-            </div>
-            <div className="divide-y divide-slate-200 dark:divide-slate-800 max-h-[420px] overflow-auto">
-              {history.length === 0 ? (
-                <div className="p-4 text-sm text-slate-500">Nessun calcolo ancora.</div>
-              ) : (
-                history.map((h) => (
-                  <div key={h.id} className="p-3 flex items-center justify-between">
-                    <div>
-                      <div className="text-xs text-slate-500">
-                        {new Date(h.ts).toLocaleString("it-IT")}
-                      </div>
-                      <div className="text-sm">{h.expression}</div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <div className="font-semibold tabular-nums">{fmt(h.result)}</div>
-                      <button
-                        onClick={() => navigator.clipboard.writeText(String(h.result))}
-                        className="p-2 rounded-lg border border-slate-300 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800"
-                        title="Copia risultato"
-                      >
-                        <Copy size={16} />
-                      </button>
-                    </div>
-                  </div>
-                ))
-              )}
-            </div>
+  {/* Sidebar: OCR + STORICO + (NUOVA) TASTIERA */}
+  <motion.aside layout className="lg:col-span-2 space-y-6">
+    {/* OCR Card */}
+    <div className="rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 overflow-hidden">
+      <div className="p-4 flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <ImageIcon size={18} /> <span className="font-medium">Importa dati da foto/screen (OCR)</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => fileInputRef.current?.click()}
+            className="text-xs px-2 py-1 rounded-md border border-slate-300 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800"
+          >
+            Carica immagine
+          </button>
+          <button
+            onClick={pasteImage}
+            className="text-xs px-2 py-1 rounded-md border border-slate-300 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800"
+          >
+            Incolla
+          </button>
+        </div>
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/*"
+          className="hidden"
+          onChange={(e) => onOcrFile(e.target.files?.[0])}
+        />
+      </div>
+      <div className="p-4 border-t border-slate-200 dark:border-slate-800">
+        {ocrBusy ? (
+          <div className="text-sm text-slate-500">Analisi in corso…</div>
+        ) : importedNumbers.length === 0 ? (
+          <div className="text-sm text-slate-500">Qui compariranno i numeri trovati (es. premi imponibili).</div>
+        ) : (
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+            {importedNumbers.map((n, idx) => (
+              <button
+                key={idx}
+                onClick={() => insertImported(n)}
+                className="px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800"
+              >
+                {fmt(n)}
+              </button>
+            ))}
           </div>
-          {/* Tastiera spostata sotto lo Storico */}
-<Keypad
-  inputDigit={inputDigit}
-  addDot={addDot}
-  setOp={setOp}
-  equals={equals}
-  clearAll={clearAll}
-  backspace={backspace}
-/>
+        )}
+      </div>
+    </div>
 
-        </motion.aside>
-      </main>
+    {/* History Card */}
+    <div className="rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 overflow-hidden">
+      <div className="p-4 flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <History size={18} /> <span className="font-medium">Storico calcoli</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={exportCSV}
+            className="text-xs px-2 py-1 rounded-md border border-slate-300 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800"
+          >
+            Export CSV
+          </button>
+          <button
+            onClick={() => setHistory([])}
+            className="text-xs px-2 py-1 rounded-md border border-slate-300 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800"
+          >
+            Svuota
+          </button>
+        </div>
+      </div>
+      <div className="divide-y divide-slate-200 dark:divide-slate-800 max-h-[420px] overflow-auto">
+        {history.length === 0 ? (
+          <div className="p-4 text-sm text-slate-500">Nessun calcolo ancora.</div>
+        ) : (
+          history.map((h) => (
+            <div key={h.id} className="p-3 flex items-center justify-between">
+              <div>
+                <div className="text-xs text-slate-500">{new Date(h.ts).toLocaleString("it-IT")}</div>
+                <div className="text-sm">{h.expression}</div>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="font-semibold tabular-nums">{fmt(h.result)}</div>
+                <button
+                  onClick={() => navigator.clipboard.writeText(String(h.result))}
+                  className="p-2 rounded-lg border border-slate-300 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800"
+                  title="Copia risultato"
+                >
+                  <Copy size={16} />
+                </button>
+              </div>
+            </div>
+          ))
+        )}
+      </div>
+    </div>
+
+    {/* Tastiera spostata sotto lo Storico */}
+    <Keypad
+      inputDigit={inputDigit}
+      addDot={addDot}
+      setOp={setOp}
+      equals={equals}
+      clearAll={clearAll}
+      backspace={backspace}
+    />
+  </motion.aside>
+</main>
+
 
       {/* Settings modal */}
       {showSettings && (
