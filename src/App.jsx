@@ -408,98 +408,6 @@ function App() {
               )}
             </div>
 
-            <div className="p-4 grid grid-cols-4 gap-2">
-              {/* Row 1 */}
-              <CalcKey onClick={clearAll} className="col-span-1 bg-slate-100 dark:bg-slate-800">
-                <Eraser size={18} /> AC
-              </CalcKey>
-              <CalcKey onClick={backspace} className="col-span-1 bg-slate-100 dark:bg-slate-800">
-                <Delete size={18} /> DEL
-              </CalcKey>
-              <CalcKey
-                onClick={() => setOp("/")}
-                className="col-span-1 bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-100"
-              >
-                <Divide size={18} />
-              </CalcKey>
-              <CalcKey
-                onClick={() => setOp("*")}
-                className="col-span-1 bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-100"
-              >
-                ×
-              </CalcKey>
-
-              {/* Row 2 */}
-              {[7, 8, 9].map((n) => (
-                <CalcKey key={n} onClick={() => inputDigit(n)}>
-                  {n}
-                </CalcKey>
-              ))}
-              <CalcKey
-                onClick={() => setOp("-")}
-                className="bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-100"
-              >
-                <Minus size={18} />
-              </CalcKey>
-
-              {/* Row 3 */}
-              {[4, 5, 6].map((n) => (
-                <CalcKey key={n} onClick={() => inputDigit(n)}>
-                  {n}
-                </CalcKey>
-              ))}
-              <CalcKey
-                onClick={() => setOp("+")}
-                className="bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-100"
-              >
-                <Plus size={18} />
-              </CalcKey>
-
-              {/* Row 4 */}
-              {[1, 2, 3].map((n) => (
-                <CalcKey key={n} onClick={() => inputDigit(n)}>
-                  {n}
-                </CalcKey>
-              ))}
-              <CalcKey onClick={equals} className="row-span-2 bg-blue-600 text-white hover:bg-blue-700">
-                =
-              </CalcKey>
-
-              {/* Row 5 */}
-              <CalcKey onClick={() => inputDigit(0)} className="col-span-2">
-                0
-              </CalcKey>
-              <CalcKey onClick={addDot}>,</CalcKey>
-            </div>
-
-            {/* Percent Buttons */}
-            <div className="p-4 border-t border-slate-200 dark:border-slate-800 bg-slate-50/60 dark:bg-slate-900/60">
-              <div className="flex items-center justify-between mb-3">
-                <div className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300">
-                  <Percent size={16} /> Tasti % personalizzabili
-                </div>
-                <button
-                  onClick={() => setShowSettings(true)}
-                  className="text-xs px-2 py-1 rounded-md border border-slate-300 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800"
-                >
-                  <Settings size={14} /> Modifica
-                </button>
-              </div>
-              <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
-                {prefs.percents.map((p, i) => (
-                  <button
-                    key={i}
-                    onClick={() => applyPercent(p, prefs.labels?.[i])}
-                    className="px-3 py-2 rounded-xl border border-blue-200 dark:border-blue-800 bg-blue-50 text-blue-800 dark:bg-blue-900/40 dark:text-blue-200 hover:bg-blue-100 dark:hover:bg-blue-800/60 font-medium text-left"
-                    title={`${prefs.labels?.[i] ?? ""} (${p}%)`}
-                  >
-                    <div className="text-[10px] leading-tight opacity-80 truncate">
-                      {prefs.labels?.[i] ?? ""}
-                    </div>
-                    <div className="text-base font-semibold">{p}%</div>
-                  </button>
-                ))}
-              </div>
             </div>
           </div>
         </motion.section>
@@ -605,6 +513,16 @@ function App() {
               )}
             </div>
           </div>
+          {/* Tastiera spostata sotto lo Storico */}
+<Keypad
+  inputDigit={inputDigit}
+  addDot={addDot}
+  setOp={setOp}
+  equals={equals}
+  clearAll={clearAll}
+  backspace={backspace}
+/>
+
         </motion.aside>
       </main>
 
