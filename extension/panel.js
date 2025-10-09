@@ -2,29 +2,26 @@
 const frame = document.getElementById("app");
 const dbg = document.getElementById("dbg");
 
-// Riceve messaggi dal background e li inoltra all'app dentro l'iframe (GitHub Pages)
 chrome.runtime.onMessage.addListener((msg) => {
   try {
     if (msg?.type === "IMPO_BROADCAST" && frame?.contentWindow) {
       frame.contentWindow.postMessage({ type: "IMPO_BROADCAST", imponibile: msg.imponibile }, "*");
-      dbg.textContent = `Imponibile: ${msg.imponibile}`;
+      dbg.textContent = `Imponibile: ${msg.imponibile}  •  Label: ${msg.label || "—"}`;
     }
     if (msg?.type === "IMPO_DEBUG") {
-      dbg.textContent = `Scan: ${msg.imponibile ?? "—"} | nodi: ${msg.nodes ?? "?"}`;
+      dbg.textContent = `Scan: ${msg.imponibile ?? "—"}  •  Label: ${msg.label || "—"}  •  nodi: ${msg.nodes ?? "?"}`;
     }
   } catch (e) {
     console.debug("[ProvvCalc:panel] onMessage error:", e?.message);
   }
 });
 
-// Trova una scheda aperta sul dominio Zurich
 async function findSferaTab() {
   const tabs = await chrome.tabs.query({ url: ["https://*.zurich.it/*"] });
   const active = tabs.find(t => t.active) || tabs[0];
   return active?.id ? active.id : null;
 }
 
-// Inietta content.js manualmente (se il declarative non è partito)
 async function ensureInjected(tabId) {
   try {
     await chrome.scripting.executeScript({
@@ -32,12 +29,10 @@ async function ensureInjected(tabId) {
       files: ["content.js"],
     });
   } catch (e) {
-    // ignora errori se già iniettato
     console.debug("[ProvvCalc:panel] inject:", e?.message);
   }
 }
 
-// Rescan manuale
 document.getElementById("rescan").addEventListener("click", async () => {
   const tabId = await findSferaTab();
   if (!tabId) { dbg.textContent = "Nessuna scheda Sfera trovata"; return; }
@@ -52,7 +47,6 @@ document.getElementById("rescan").addEventListener("click", async () => {
   }
 });
 
-// All'apertura del pannello: inietta e prova subito una scansione
 (async () => {
   const tabId = await findSferaTab();
   if (tabId) {
